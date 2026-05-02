@@ -23,6 +23,8 @@ Open http://localhost:8080 in your browser. The password is printed to the termi
 
 Requires [Singularity](https://sylabs.io/singularity/) ≥ 3.8.6 or [Apptainer](https://apptainer.org/). For your test environment, Singularity 3.8.6 via conda is also acceptable.
 
+The build script tries `--fakeroot` first. If that fails and `sudo` is available, it automatically retries without `--fakeroot`.
+
 ```bash
 # Build into the repository-local sif directory using the default version from code-server.def
 ./scripts/build_sif.sh

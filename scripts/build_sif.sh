@@ -55,9 +55,38 @@ echo "  fakeroot  : ${USE_FAKEROOT}"
 echo "  version   : ${VERSION}"
 echo "  output    : ${OUTPUT_SIF}"
 
-SINGULARITYENV_CODE_SERVER_VERSION="${VERSION}" \
-  "${RUNTIME_ARGS[@]}" build "${FAKEROOT_FLAG[@]}" \
-  "${OUTPUT_SIF}" \
-  "${DEF_FILE}"
+run_build() {
+  SINGULARITYENV_CODE_SERVER_VERSION="${VERSION}" \
+    "${RUNTIME_ARGS[@]}" build "$@" \
+    "${OUTPUT_SIF}" \
+    "${DEF_FILE}"
+}
+
+if [[ "${USE_FAKEROOT}" != "0" ]]; then
+  set +e
+  run_build "${FAKEROOT_FLAG[@]}"
+  FAKEROOT_STATUS=$?
+  set -e
+
+  if [[ ${FAKEROOT_STATUS} -ne 0 ]]; then
+    echo "WARNING: fakeroot build failed. Attempting sudo fallback without --fakeroot." >&2
+
+    if [[ ${EUID} -eq 0 ]]; then
+      run_build
+    elif command -v sudo >/dev/null 2>&1; then
+      sudo env \
+        "PATH=${PATH}" \
+        "SINGULARITYENV_CODE_SERVER_VERSION=${VERSION}" \
+        "${RUNTIME_ARGS[@]}" build \
+        "${OUTPUT_SIF}" \
+        "${DEF_FILE}"
+    else
+      echo "ERROR: sudo is not available for fallback. Install uidmap/newuidmap or run as root." >&2
+      exit 1
+    fi
+  fi
+else
+  run_build
+fi
 
 echo "Build completed: ${OUTPUT_SIF}"
