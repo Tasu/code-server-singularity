@@ -79,6 +79,8 @@ You can install a team-friendly pre-push hook template:
 ./scripts/install_pre_push_hook.sh
 ```
 
+The installer resolves Git's effective hooks directory, so it also works when `core.hooksPath` is configured.
+
 Default mode is `full`:
 
 - Push to any branch -> run full checks (`scripts/local_full_check.sh`)
