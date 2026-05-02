@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Git pre-push hook for local checks.
+#
+# Modes:
+#   full (default):  full checks for every branch push
+#   smart:           full checks for pushes to main, lightweight checks otherwise
+#   light:           lightweight checks for every branch push
+#
+# Configure with:
+#   git config hooks.prePushCheckMode <full|smart|light>
+
+MODE="$(git config --get hooks.prePushCheckMode || echo full)"
+
+if [[ "${MODE}" != "smart" && "${MODE}" != "full" && "${MODE}" != "light" ]]; then
+  echo "WARN: invalid hooks.prePushCheckMode='${MODE}', fallback to 'full'." >&2
+  MODE="full"
+fi
+
+RUN_FULL=0
+
+if [[ "${MODE}" == "full" ]]; then
+  RUN_FULL=1
+elif [[ "${MODE}" == "smart" ]]; then
+  # pre-push receives refs on stdin: <local ref> <local sha> <remote ref> <remote sha>
+  # Run full checks when pushing to main.
+  while IFS=' ' read -r local_ref local_sha remote_ref remote_sha; do
+    if [[ -z "${local_ref}" ]]; then
+      continue
+    fi
+    if [[ "${remote_ref}" == "refs/heads/main" ]]; then
+      RUN_FULL=1
+      break
+    fi
+  done
+fi
+
+if [[ "${RUN_FULL}" -eq 1 ]]; then
+  echo "[pre-push] Running full local checks (build + smoke + lightweight)..."
+  ./scripts/local_full_check.sh
+else
+  echo "[pre-push] Running lightweight checks..."
+  ./scripts/ci_check.sh
+fi
+
+echo "[pre-push] Checks passed. Continue push."

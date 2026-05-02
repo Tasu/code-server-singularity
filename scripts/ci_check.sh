@@ -5,11 +5,12 @@ set -euo pipefail
 # This script is used by GitHub Actions and intentionally avoids heavy container builds.
 
 echo "[1/4] Validate shell script syntax"
-bash -n scripts/build_sif.sh scripts/test_sif.sh
+bash -n scripts/build_sif.sh scripts/test_sif.sh scripts/install_pre_push_hook.sh .githooks/pre-push
 
 echo "[2/4] Ensure helper scripts are executable"
 [[ -x scripts/build_sif.sh ]]
 [[ -x scripts/test_sif.sh ]]
+[[ -x scripts/install_pre_push_hook.sh ]]
 
 echo "[3/4] Ensure generated SIF files are ignored"
 grep -Fxq 'sif/*.sif' .gitignore

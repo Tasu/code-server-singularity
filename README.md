@@ -71,6 +71,62 @@ GitHub Actions runs only lightweight checks:
 ./scripts/ci_check.sh
 ```
 
+## Optional: pre-push hook for local checks
+
+You can install a team-friendly pre-push hook template:
+
+```bash
+./scripts/install_pre_push_hook.sh
+```
+
+The installer resolves Git's effective hooks directory, so it also works when `core.hooksPath` is configured.
+
+Default mode is `full`:
+
+- Push to any branch -> run full checks (`scripts/local_full_check.sh`)
+
+If Singularity/Apptainer is not directly available on PATH (for example when using conda), set `SINGULARITY_CMD` so pre-push full checks can execute:
+
+```bash
+SINGULARITY_CMD="conda run -n nf-env singularity" git push -u origin <your-branch>
+```
+
+Or export it for your current shell session before push:
+
+```bash
+export SINGULARITY_CMD="conda run -n nf-env singularity"
+git push -u origin <your-branch>
+```
+
+To use `smart` mode (full checks only when pushing to `main`):
+
+```bash
+git config hooks.prePushCheckMode smart
+```
+
+`smart` behavior:
+
+- Push to `main` -> run full checks (`scripts/local_full_check.sh`)
+- Push to other branches -> run lightweight checks (`scripts/ci_check.sh`)
+
+To use lightweight-only mode:
+
+```bash
+git config hooks.prePushCheckMode light
+```
+
+To always run full checks:
+
+```bash
+git config hooks.prePushCheckMode full
+```
+
+Return to default behavior:
+
+```bash
+git config --unset hooks.prePushCheckMode
+```
+
 ## Usage examples
 
 ```bash
