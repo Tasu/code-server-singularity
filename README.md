@@ -144,3 +144,50 @@ singularity run --net code-server.sif
 ```
 
 **Security note:** Avoid exposing code-server with `0.0.0.0` unless you are intentionally publishing the service and have proper network controls and authentication in place.
+
+## Persisting settings and workspace across container restarts
+
+By default, Singularity containers are read-only and any state written inside the container is lost on exit. To retain editor settings and workspace state, bind real host directories for the following two purposes.
+
+### 1. code-server user data (settings, extensions, cache)
+
+code-server stores its configuration and cached data under `~/.local/share/code-server` by default. Bind a persistent host directory to preserve it across container restarts:
+
+```bash
+CSDATA="${HOME}/.local/share/code-server"
+mkdir -p "${CSDATA}"
+singularity run \
+    --bind "${CSDATA}:${HOME}/.local/share/code-server" \
+    code-server.sif
+```
+
+To store data in a custom location instead of the default, use `--user-data-dir`:
+
+```bash
+singularity run \
+    --bind /path/to/cs-data:/cs-data \
+    code-server.sif --user-data-dir /cs-data
+```
+
+### 2. Workspace / user home directory
+
+Bind the host directory that contains your projects so that cloned repositories and Git history survive container restarts:
+
+```bash
+singularity run \
+    --bind "${HOME}/projects:${HOME}/projects" \
+    code-server.sif "${HOME}/projects"
+```
+
+### Combined example
+
+```bash
+CSDATA="${HOME}/.local/share/code-server"
+mkdir -p "${CSDATA}"
+singularity run \
+    --bind "${CSDATA}:${HOME}/.local/share/code-server" \
+    --bind "${HOME}/projects:${HOME}/projects" \
+    code-server.sif "${HOME}/projects"
+```
+
+After a container restart, editor settings, installed extensions, and cloned repositories are all preserved.
