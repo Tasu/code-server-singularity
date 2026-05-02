@@ -57,7 +57,7 @@ echo "  output    : ${OUTPUT_SIF}"
 
 run_build() {
   SINGULARITYENV_CODE_SERVER_VERSION="${VERSION}" \
-    "${RUNTIME_ARGS[@]}" build "$@" \
+    "${RUNTIME_ARGS[@]}" build --force "$@" \
     "${OUTPUT_SIF}" \
     "${DEF_FILE}"
 }
@@ -77,7 +77,7 @@ if [[ "${USE_FAKEROOT}" != "0" ]]; then
       sudo env \
         "PATH=${PATH}" \
         "SINGULARITYENV_CODE_SERVER_VERSION=${VERSION}" \
-        "${RUNTIME_ARGS[@]}" build \
+        "${RUNTIME_ARGS[@]}" build --force \
         "${OUTPUT_SIF}" \
         "${DEF_FILE}"
     else
