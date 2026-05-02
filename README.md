@@ -71,6 +71,47 @@ GitHub Actions runs only lightweight checks:
 ./scripts/ci_check.sh
 ```
 
+## Optional: pre-push hook for local checks
+
+You can install a team-friendly pre-push hook template:
+
+```bash
+./scripts/install_pre_push_hook.sh
+```
+
+Default mode is `full`:
+
+- Push to any branch -> run full checks (`scripts/local_full_check.sh`)
+
+To use `smart` mode (full checks only when pushing to `main`):
+
+```bash
+git config hooks.prePushCheckMode smart
+```
+
+`smart` behavior:
+
+- Push to `main` -> run full checks (`scripts/local_full_check.sh`)
+- Push to other branches -> run lightweight checks (`scripts/ci_check.sh`)
+
+To use lightweight-only mode:
+
+```bash
+git config hooks.prePushCheckMode light
+```
+
+To always run full checks:
+
+```bash
+git config hooks.prePushCheckMode full
+```
+
+Return to default behavior:
+
+```bash
+git config --unset hooks.prePushCheckMode
+```
+
 ## Usage examples
 
 ```bash
