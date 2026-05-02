@@ -1,4 +1,4 @@
-name: Build and Release
+name: Validate Repository
 
 on:
   push:
@@ -7,81 +7,17 @@ on:
   pull_request:
     branches:
       - main
-  schedule:
-    # Run weekly on Monday at 00:00 UTC to pick up new code-server releases
-    - cron: '0 0 * * 1'
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'code-server version to build (e.g. 4.117.0). Leave empty to use the latest release.'
-        required: false
-        default: ''
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  build:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Resolve code-server version
-        id: version
-        run: |
-          if [ -n "${{ github.event.inputs.version }}" ]; then
-            VERSION="${{ github.event.inputs.version }}"
-          else
-            RESPONSE=$(curl -sf https://api.github.com/repos/coder/code-server/releases/latest)
-            if [ -z "${RESPONSE}" ]; then
-              echo "ERROR: Failed to fetch latest code-server release from GitHub API." >&2
-              exit 1
-            fi
-            VERSION=$(echo "${RESPONSE}" | jq -r '.tag_name' | sed 's/^v//')
-            if [ -z "${VERSION}" ] || [ "${VERSION}" = "null" ]; then
-              echo "ERROR: Could not parse code-server version from GitHub API response." >&2
-              exit 1
-            fi
-          fi
-          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-          echo "Resolved code-server version: ${VERSION}"
-
-      - name: Set up Apptainer
-        uses: eWaterCycle/setup-apptainer@v2
-        with:
-          apptainer-version: 1.3.6
-
-      - name: Build Singularity image
-        run: ./scripts/build_sif.sh "${{ steps.version.outputs.version }}"
-
-      - name: Smoke test code-server commands in image
-        run: ./scripts/test_sif.sh "sif/code-server_${{ steps.version.outputs.version }}.sif"
-
-      - name: Upload image artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: code-server_${{ steps.version.outputs.version }}.sif
-          path: sif/code-server_${{ steps.version.outputs.version }}.sif
-          retention-days: 7
-
-      - name: Create GitHub Release
-        # Only create a release on scheduled or manually triggered runs.
-        # Push-to-main events are used solely to verify the build succeeds; they do not publish a release.
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ steps.version.outputs.version }}
-          name: code-server v${{ steps.version.outputs.version }}
-          body: |
-            Singularity/Apptainer container image for [code-server v${{ steps.version.outputs.version }}](https://github.com/coder/code-server/releases/tag/v${{ steps.version.outputs.version }}).
-
-            ## Usage
-
-            Download `code-server_${{ steps.version.outputs.version }}.sif` and run:
-
-            ```bash
-            singularity run code-server_${{ steps.version.outputs.version }}.sif
-            ```
-          files: sif/code-server_${{ steps.version.outputs.version }}.sif
-          fail_on_unmatched_files: true
+      - name: Run repository checks
+        run: ./scripts/ci_check.sh
