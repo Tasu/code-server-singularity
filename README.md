@@ -2,6 +2,13 @@
 
 Singularity/Apptainer container image definition for [code-server](https://github.com/coder/code-server) — VS Code in the browser.
 
+## Outline
+
+- This repository provides a Singularity definition file for code-server.
+- The container is intended for browser access on localhost.
+- Use SSH port forwarding when accessing from a remote client.
+- Change the default port for your own environment as needed.
+
 ## Quick start
 
 Download the latest `.sif` image from the [Releases](https://github.com/Tasu/code-server-singularity/releases) page, then run:
