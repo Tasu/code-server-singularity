@@ -83,6 +83,19 @@ Default mode is `full`:
 
 - Push to any branch -> run full checks (`scripts/local_full_check.sh`)
 
+If Singularity/Apptainer is not directly available on PATH (for example when using conda), set `SINGULARITY_CMD` so pre-push full checks can execute:
+
+```bash
+SINGULARITY_CMD="conda run -n nf-env singularity" git push -u origin <your-branch>
+```
+
+Or export it for your current shell session before push:
+
+```bash
+export SINGULARITY_CMD="conda run -n nf-env singularity"
+git push -u origin <your-branch>
+```
+
 To use `smart` mode (full checks only when pushing to `main`):
 
 ```bash
