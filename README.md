@@ -36,6 +36,14 @@ Built images are stored in the repository-local `sif/` directory (see [.gitignor
 ./scripts/build_sif.sh 4.117.0
 ```
 
+To preinstall Copilot reliably, pass a VSIX URL at build time:
+
+```bash
+SINGULARITYENV_COPILOT_VSIX_URL="https://example.invalid/github.copilot.vsix" ./scripts/build_sif.sh
+```
+
+If `SINGULARITYENV_COPILOT_VSIX_URL` is omitted, the build still succeeds and attempts `GitHub.copilot` by extension ID.
+
 ## Testing a built image
 
 This repository includes a smoke test that validates commands from the built image:

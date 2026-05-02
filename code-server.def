@@ -22,6 +22,28 @@ From: ubuntu:22.04
     dpkg -i "code-server_${CODE_SERVER_VERSION}_amd64.deb"
     rm "code-server_${CODE_SERVER_VERSION}_amd64.deb"
 
+    # Seed extensions directory and install Copilot extension at build time.
+    # Prefer an explicit VSIX URL when provided, because GitHub.copilot is not
+    # available from Open VSX in many environments.
+    mkdir -p /opt/code-server/extensions-seed
+    COPILOT_VSIX_URL="${SINGULARITYENV_COPILOT_VSIX_URL:-}"
+    if [[ -n "${COPILOT_VSIX_URL}" ]]; then
+        if curl -fL "${COPILOT_VSIX_URL}" -o /tmp/github.copilot.vsix; then
+            if ! code-server --extensions-dir /opt/code-server/extensions-seed --install-extension /tmp/github.copilot.vsix; then
+                echo "WARNING: Failed to install Copilot VSIX from COPILOT_VSIX_URL." >&2
+            fi
+            rm -f /tmp/github.copilot.vsix
+        else
+            echo "WARNING: Failed to download Copilot VSIX from COPILOT_VSIX_URL." >&2
+        fi
+    elif ! code-server --extensions-dir /opt/code-server/extensions-seed --install-extension GitHub.copilot; then
+        echo "WARNING: Failed to preinstall GitHub.copilot extension during build." >&2
+        echo "         Provide SINGULARITYENV_COPILOT_VSIX_URL to install from VSIX." >&2
+    fi
+
+    # Ensure all runtime users can read seeded extension files.
+    chmod -R a+rX /opt/code-server/extensions-seed
+
     # Clean up
     apt-get clean
     rm -rf /var/lib/apt/lists/*
@@ -32,6 +54,14 @@ From: ubuntu:22.04
     export PATH=/usr/local/bin:$PATH
 
 %runscript
+    USER_EXT_DIR="${HOME}/.local/share/code-server/extensions"
+    SEED_EXT_DIR="/opt/code-server/extensions-seed"
+
+    mkdir -p "${USER_EXT_DIR}"
+    if [[ -d "${SEED_EXT_DIR}" ]]; then
+        cp -an "${SEED_EXT_DIR}/." "${USER_EXT_DIR}/" || true
+    fi
+
     exec code-server "$@"
 
 %labels
