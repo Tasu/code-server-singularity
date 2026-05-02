@@ -21,14 +21,31 @@ Open http://localhost:8080 in your browser. The password is printed to the termi
 
 ## Building the image locally
 
-Requires [Apptainer](https://apptainer.org/) (or Singularity ≥ 3.9).
+Requires [Singularity](https://sylabs.io/singularity/) ≥ 3.8.6 or [Apptainer](https://apptainer.org/). For your test environment, Singularity 3.8.6 via conda is also acceptable.
+
+The build script tries `--fakeroot` first. If that fails and `sudo` is available, it automatically retries without `--fakeroot`.
 
 ```bash
-# Build with the default version bundled in the definition file
-singularity build code-server.sif code-server.def
+# Build into the repository-local sif directory using the default version from code-server.def
+./scripts/build_sif.sh
 
 # Build with a specific code-server version
-singularity build --build-arg VERSION=4.117.0 code-server.sif code-server.def
+./scripts/build_sif.sh 4.117.0
+```
+
+## Testing a built image
+
+This repository includes a smoke test that validates commands from the built image:
+
+- `code-server --help`
+- `code-server --version`
+
+```bash
+# Test the latest image under sif/
+./scripts/test_sif.sh
+
+# Test an explicit image path
+./scripts/test_sif.sh ./sif/code-server_4.117.0.sif
 ```
 
 ## Usage examples

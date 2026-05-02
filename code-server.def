@@ -1,9 +1,6 @@
 Bootstrap: docker
 From: ubuntu:22.04
 
-%arguments
-    VERSION=4.117.0
-
 %post
     export DEBIAN_FRONTEND=noninteractive
 
@@ -19,9 +16,11 @@ From: ubuntu:22.04
     locale-gen en_US.UTF-8
 
     # Install code-server
-    curl -fOL "https://github.com/coder/code-server/releases/download/v{{ VERSION }}/code-server_{{ VERSION }}_amd64.deb"
-    dpkg -i "code-server_{{ VERSION }}_amd64.deb"
-    rm "code-server_{{ VERSION }}_amd64.deb"
+    # VERSION can be overridden at build time via SINGULARITYENV_CODE_SERVER_VERSION
+    CODE_SERVER_VERSION="${SINGULARITYENV_CODE_SERVER_VERSION:-4.117.0}"
+    curl -fOL "https://github.com/coder/code-server/releases/download/v${CODE_SERVER_VERSION}/code-server_${CODE_SERVER_VERSION}_amd64.deb"
+    dpkg -i "code-server_${CODE_SERVER_VERSION}_amd64.deb"
+    rm "code-server_${CODE_SERVER_VERSION}_amd64.deb"
 
     # Clean up
     apt-get clean
@@ -50,4 +49,4 @@ From: ubuntu:22.04
             --bind-addr 0.0.0.0:8080 --auth none /home/user/project
 
     Build with a specific code-server version:
-        singularity build --build-arg VERSION=4.117.0 code-server.sif code-server.def
+        SINGULARITYENV_CODE_SERVER_VERSION=4.117.0 singularity build --fakeroot code-server.sif code-server.def
