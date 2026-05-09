@@ -10,10 +10,17 @@ From: ubuntu:22.04
         ca-certificates \
         git \
         locales \
-        sudo
+        sudo \
+        uidmap
 
     # Set up locale
     locale-gen en_US.UTF-8
+
+    # Install pixi and apptainer via pixi global
+    PIXI_HOME="/opt/pixi"
+    PIXI_BIN_DIR="/usr/local/bin"
+    curl -fsSL https://pixi.sh/install.sh | PIXI_HOME="${PIXI_HOME}" PIXI_BIN_DIR="${PIXI_BIN_DIR}" PIXI_NO_PATH_UPDATE=1 bash
+    PIXI_HOME="${PIXI_HOME}" pixi global install --channel conda-forge --expose apptainer apptainer
 
     # Install code-server
     # VERSION can be overridden at build time via SINGULARITYENV_CODE_SERVER_VERSION
@@ -29,7 +36,7 @@ From: ubuntu:22.04
 %environment
     export LC_ALL=en_US.UTF-8
     export LANG=en_US.UTF-8
-    export PATH=/usr/local/bin:$PATH
+    export PATH=/opt/pixi/bin:/usr/local/bin:$PATH
 
 %runscript
     exec code-server "$@"
