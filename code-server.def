@@ -17,7 +17,7 @@ From: ubuntu:22.04
 
     # Install code-server
     # VERSION can be overridden at build time via SINGULARITYENV_CODE_SERVER_VERSION
-    CODE_SERVER_VERSION="${SINGULARITYENV_CODE_SERVER_VERSION:-4.117.0}"
+    CODE_SERVER_VERSION="${SINGULARITYENV_CODE_SERVER_VERSION:-4.118.0}"
     curl -fOL "https://github.com/coder/code-server/releases/download/v${CODE_SERVER_VERSION}/code-server_${CODE_SERVER_VERSION}_amd64.deb"
     dpkg -i "code-server_${CODE_SERVER_VERSION}_amd64.deb"
     rm "code-server_${CODE_SERVER_VERSION}_amd64.deb"
